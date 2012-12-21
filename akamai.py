@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import datetime
 import argparse
 import urlparse
+import logging
 
 import settings
 
@@ -18,7 +19,7 @@ def eccu_doc_for_purge_dir(path_to_purge):
         parent = ET.SubElement(parent, 'match:recursive-dirs', {'value': name})
     revalidate = ET.SubElement(parent, 'revalidate')
     revalidate.text = 'now'
-    return ET.tostring(root) #'<?xml version="1.0"?>\n' + ET.tostring(root)
+    return ET.tostring(root, encoding='ascii') #'<?xml version="1.0"?>\n' + ET.tostring(root)
     #xml = StringIO()
     #xml.write('<?xml version="1.0"?>\n')
     #xml.write(ET.tostring(root))
@@ -42,6 +43,8 @@ class AkamaiEccu(object):
 
 
 def main(argv=None):
+    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser(description='purges akamai directory')
     parser.add_argument('url', help='url of directory to purge')
     args = parser.parse_args()
@@ -52,7 +55,7 @@ def main(argv=None):
 
     client = Client(url=settings.wsdl_url, location=settings.endpoint, username=settings.username, password=settings.password)
 
-    eccu_doc = eccu_doc_for_purge_dir(path)
+    eccu_doc = base64.b64encode(eccu_doc_for_purge_dir(path))
     now = str(datetime.datetime.now())
     print(eccu_doc)
     result = client.service.upload(
