@@ -1,2 +1,5 @@
 settings_local.py
 *.pyc
+.*
+project/target/
+target/
