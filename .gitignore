@@ -1,4 +1,4 @@
-settings_local.py
+*_local.py
 *.pyc
 .*
 project/target/
