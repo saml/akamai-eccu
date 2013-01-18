@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>report</title>
+<script language="javascript" type="text/javascript" src="/static/jquery.js"></script>
+<script language="javascript" type="text/javascript" src="/static/jquery.flot.js"></script>
+</head>
+<body>
+    <div id="plot"></div>
+    <script>
+        jQuery(document).ready(function() {
+            var plot = jQuery('#plot');
+            plot.width(1000);
+            plot.height(800);
+            var data = [];
+            var options = {
+                lines: {show: true},
+                points: {show: false},
+                grid: {hoverable: true, clickable: true},
+                xaxis: {mode: "time"},
+                yaxes: [{min: 0, label: 'count'}, {min: 0, alignTicksWithAxis: 1, position: 'right', label: 'minutes'}]
+            };
+
+            function showTooltip(x, y, contents) {
+                $('<div id="tooltip">' + contents + '</div>').css( {
+                    position: 'absolute',
+                    display: 'none',
+                    top: y + 5,
+                    left: x + 5,
+                    border: '1px solid #fdd',
+                    padding: '2px',
+                    'background-color': '#fee',
+                    opacity: 0.80
+                }).appendTo("body").fadeIn(200);
+            }
+
+            var prevPoint = null;
+            plot.bind('plothover', function(evt, pos, item) {
+                if (item) {
+                    if (prevPoint !== item.dataIndex) {
+                        prevPoint = item.dataIndex;
+                        jQuery('#tooltip').remove();
+                        var x = new Date(0);
+                        x.setUTCSeconds(item.datapoint[0] / 1000.0);
+                        var y = item.datapoint[1];
+                        showTooltip(item.pageX, item.pageY, x + '=' + y);
+                    }
+                } else {
+                    jQuery('#tooltip').remove();
+                }
+            });
+
+            jQuery.ajax({
+                url: '/series',
+                method: 'GET', 
+                dataType: 'json',
+                success: function(data) {
+                    jQuery.plot(plot, [{data: data.counts, label: 'Counts'}, {data: data.delays, label: 'Elapsed', yaxis: 2}], options);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
